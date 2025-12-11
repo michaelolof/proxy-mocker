@@ -1,0 +1,1 @@
+{"version":3,"file":"http-proxy-middleware-plugin.d.ts","sourceRoot":"","sources":["../../src/plugins/http-proxy-middleware-plugin.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,aAAa,EAAE,MAAM,YAAY,CAAA;AAC1C,OAAO,EAAE,KAAK,aAAa,EAAE,KAAK,MAAM,EAAE,MAAM,SAAS,CAAC;AAK1D,eAAO,MAAM,yBAAyB,GAAI,MAAM,aAAa,MAAM,OAAO,MAAM,EAAE,UAAU,aAAa,SA4FxG,CAAA"}

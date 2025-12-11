@@ -1,0 +1,30 @@
+{
+  "name": "proxy-mocker",
+  "version": "0.0.1",
+  "description": "\"A proxy mocking library with openapi3 type inference\"",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rm -rf ./dist && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelolof/proxy-mocker.git"
+  },
+  "author": "michaelolof",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/michaelolof/proxy-mocker/issues"
+  },
+  "homepage": "https://github.com/michaelolof/proxy-mocker#readme",
+  "devDependencies": {
+    "@types/node": "^24.10.2",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "url-pattern": "^1.0.3"
+  },
+  "peerDependencies": {
+    "http-proxy": "^1.18.1"
+  }
+}
