@@ -1,6 +1,10 @@
 import { Methods, MockRoutes, MockProxyOptions, RequestOptions, MethodDefinition } from "./types";
+type RouterOptions = {
+    rewritePath?: (path: string) => string;
+};
 export declare class MockRouter<T> {
     #private;
+    constructor(opts?: RouterOptions);
     url<U extends keyof T>(url: U, methods: Methods<T, U>): void;
     only<U extends keyof T>(url: U, methods: Methods<T, U>): void;
     routes(): MockRoutes<T>;

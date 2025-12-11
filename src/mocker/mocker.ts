@@ -8,16 +8,34 @@ import {
 } from "./types";
 import { extractFuncy } from "../utils";
 
+type RouterOptions = {
+    rewritePath?: (path: string) => string;
+}
+
 export class MockRouter<T> {
     #onlyRoutes: MockRoutes<T> = {};
     #routes: MockRoutes<T> = {};
+    #opts: RouterOptions = {};
+
+    constructor(opts?: RouterOptions) {
+        if (opts) {
+            this.#opts = opts;
+        }
+    }
 
     url<U extends keyof T>(url: U, methods: Methods<T, U>): void {
+        if (this.#opts.rewritePath) {
+            url = this.#opts.rewritePath(url as string) as U;
+        }
         this.#routes[url] = methods;
     }
 
     only<U extends keyof T>(url: U, methods: Methods<T, U>): void {
         console.warn("MockService Warning: `only(url, methods)` function should be called only in local development/testing");
+        if (this.#opts.rewritePath) {
+            url = this.#opts.rewritePath(url as string) as U;
+        }
+
         this.#onlyRoutes[url] = methods;
     }
 
