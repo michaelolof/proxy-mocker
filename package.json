@@ -1,6 +1,6 @@
 {
   "name": "proxy-mocker",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "\"A proxy mocking library with openapi3 type inference\"",
   "main": "dist/index.js",
   "scripts": {
