@@ -1,20 +1,5 @@
 # Using `proxy-mocker` with a Go proxy — User Guide
 
-> **Status: implemented.** `MockRouter`/`MockProxy`, `startMockSidecar` (§3.1), and the
-> **`proxymocker` Go package** (§3.2, §6 — `NewUnixClient`/`NewTCPClient`, `Match`, `WaitReady`,
-> `Middleware`, `NewReverseProxyMiddleware`) are all real, shipped, and tested — Phases 0-4 of
-> `plans/golang-plugin.md` are done, including a committed cross-language integration test
-> (`adapters/go/client_test.go`) that boots a real sidecar and drives it with the real Go client.
-> Only Phase 5 (this doc pass, README, changelog) remains.
->
-> This guide shows how a team running a **Go reverse proxy** reuses `proxy-mocker`'s typed mock
-> definitions during local development. See `plans/golang-plugin.md` for the design/rationale.
->
-> **Mental model:** you author mocks in TypeScript (fully typed from your OpenAPI schema), run them
-> as a tiny **Node sidecar**, and your Go proxy asks the sidecar — per request — "should I mock
-> this?" If yes, the Go proxy returns the mock and never dials the real upstream. If no, the request
-> flows through to the real backend, untouched.
-
 ---
 
 ## Table of contents
