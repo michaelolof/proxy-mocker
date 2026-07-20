@@ -9,9 +9,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.HttpProxyMiddlewarePlugin = void 0;
+exports.httpProxyMiddlewarePlugin = void 0;
 const utils_1 = require("../utils");
-const HttpProxyMiddlewarePlugin = (opts) => (proxy, options) => {
+const httpProxyMiddlewarePlugin = (opts) => (proxy, options) => {
     proxy.on('error', (err, req, res) => {
         // @ts-expect-error "suppress error"
         if (req.mocked) {
@@ -80,4 +80,4 @@ const HttpProxyMiddlewarePlugin = (opts) => (proxy, options) => {
         return;
     }));
 };
-exports.HttpProxyMiddlewarePlugin = HttpProxyMiddlewarePlugin;
+exports.httpProxyMiddlewarePlugin = httpProxyMiddlewarePlugin;

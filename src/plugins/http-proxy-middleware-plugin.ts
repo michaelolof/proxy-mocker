@@ -4,7 +4,7 @@ import { RequestOptions } from "../mocker";
 import { anyObjectToRecord, extractFuncy, searchParamsToRecord, waitBlock } from "../utils";
 
 
-export const HttpProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: Server, options?: ServerOptions) => {
+export const httpProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: Server, options?: ServerOptions) => {
 
     proxy.on('error', (err, req, res) => {
         // @ts-expect-error "suppress error"
@@ -71,9 +71,11 @@ export const HttpProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: Server
 
         const match = opts.proxy.matchIncomingRequest(request);
         if (match) {
-            // @ts-expect-error "suppress error"
-            req.mocked = true;
-            proxyReq.destroy();
+            if (opts.destroyRequestWhenMatched) {
+                // @ts-expect-error "suppress error"
+                req.mocked = true;
+                proxyReq.destroy();
+            }
 
             // This is a MAIN THREAD blocking wait function implementation. 
             // Only trigger this if we're in a local envrionment and the delay is significant
@@ -95,5 +97,4 @@ export const HttpProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: Server
 
         return
     });
-
 }

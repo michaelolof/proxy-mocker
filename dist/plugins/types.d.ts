@@ -173,5 +173,6 @@ export type PluginOptions = {
     destroyRequestWhenMatched?: boolean;
     proxy: MockProxy;
 };
+export type AnyProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: any, options?: any) => void;
 export {};
 //# sourceMappingURL=types.d.ts.map

@@ -257,3 +257,4 @@ export type PluginOptions = {
 }
 
 
+export type AnyProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: any, options?: any) => void
