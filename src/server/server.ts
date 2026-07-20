@@ -151,6 +151,9 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
             const addr = httpServer.address();
             return typeof addr === "object" && addr ? addr.port : port;
         },
+        resetBehaviorState() {
+            // Wired up in WS5; no-op placeholder for WS0 type-check.
+        },
     };
 
     return handle;
