@@ -70,8 +70,8 @@ export type MockRoutes<T> = {
 
 export type Mocker<T> = {
     url<U extends keyof T>(url: U, methods: Methods<T, U>): void;
-    records(): MockRoutes<T>;
-    register(mocker: Mocker<T>): void;
+    only<U extends keyof T>(url: U, methods: Methods<T, U>): void;
+    routes(): MockRoutes<T>;
 };
 
 export type MockProxyOptions = {

@@ -87,8 +87,8 @@ export const httpProxyMiddlewarePlugin = (opts: PluginOptions) => (proxy: Server
             res.writeHead(
                 extractFuncy(match.mock.response?.statusCode) || 200,
                 {
-                    "content-type": "application/json; charset utf-8",
-                    ...match.mock.response?.header
+                    "content-type": "application/json; charset=utf-8",
+                    ...extractFuncy(match.mock.response?.header)
                 }
             );
 

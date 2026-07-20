@@ -44,24 +44,6 @@ export function normalizeHeaders(headers: Record<string, string> = {}): Record<s
     return rtn;
 }
 
-export function extractURLPathParams(urlPattern: string, urlPath: string): Record<string, string> {
-    const rtn: Record<string, string> = {};
-    const patternParts = urlPattern.split("/");
-    const pathParts = urlPath.split("/");
-    for (let i = 0; i < patternParts.length; i++) {
-        if (patternParts[i].startsWith(":")) {
-            rtn[patternParts[i].substring(1)] = pathParts[i];
-        } else if (patternParts[i].startsWith("{") && patternParts[i].endsWith("}")) {
-            const match = pathParts[i].match(patternParts[i]);
-            if (match) {
-                rtn[patternParts[i].substring(1, patternParts[i].length - 1)] = match[0];
-            }
-        }
-    }
-
-    return rtn;
-}
-
 export function deepEqual(obj1: any, obj2: any): boolean {
     if (obj1 === obj2) {
         return true;
@@ -178,7 +160,7 @@ export function joinURL(...segments: string[]): string {
 }
 
 export function checkHeaderValue(header: any | undefined, name: string, value: string): boolean {
-    if (!header && typeof header !== "object") {
+    if (!header || typeof header !== "object") {
         return false
     }
     const vparts = String(header[name] || "").split(";").map(s => s.trim());

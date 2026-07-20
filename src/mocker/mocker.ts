@@ -1,4 +1,4 @@
-import { getUrlPath, JSONDecoder, normalizeHeaders, deepEqual, matchURL, joinURL, checkHeaderValue } from "./utils";
+import { getUrlPath, JSONDecoder, normalizeHeaders, deepEqual, matchURL, joinURL } from "./utils";
 import {
     Methods,
     MockRoutes,
@@ -6,7 +6,6 @@ import {
     RequestOptions,
     MethodDefinition
 } from "./types";
-import { extractFuncy } from "../utils";
 
 type RouterOptions = {
     rewritePath?: (path: string) => string;
@@ -79,7 +78,6 @@ export class MockProxy {
             return ""
         }
 
-        const isJSONResp = checkHeaderValue(extractFuncy(resp.header), "content-type", "application/json");
         const responseEncoder = resp.encoder || this.#opts.codec?.responseEncoder;
         return responseEncoder ? responseEncoder(resp.success || resp.error) : JSON.stringify(resp.success || resp.error)
     }
@@ -89,7 +87,7 @@ export class MockProxy {
         const rmethod = (req.method || "").toLowerCase();
         const rheaders = normalizeHeaders(req.headers);
         const rquery = req.query || {};
-        let rbody: string = "";
+        let rbody: any = "";
 
         if (req.body && req.body.length > 0) {
             const isJSONReq = rheaders["content-type"] === "application/json";
@@ -124,19 +122,25 @@ export class MockProxy {
                     } else {
                         queryMatches = Object.entries(mock.request.query).every(([key, value]) => rquery[key] === value);
                     }
-                } else if (mock.request?.path) {
+                }
+
+                if (mock.request?.path) {
                     if (typeof mock.request.path === "function") {
                         pathMatches = mock.request.path(rpath) === true;
                     } else {
                         pathMatches = Object.entries(mock.request.path).every(([key, value]) => rpath[key] === value);
                     }
-                } else if (mock.request?.header) {
+                }
+
+                if (mock.request?.header) {
                     if (typeof mock.request.header === "function") {
                         headerMatches = mock.request.header(rheaders) === true;
                     } else {
                         headerMatches = Object.entries(mock.request.header).every(([key, value]) => rheaders[key] === value);
                     }
-                } else if (mock.request?.body) {
+                }
+
+                if (mock.request?.body) {
                     if (typeof mock.request.body === "function") {
                         bodyMatches = mock.request.body(rbody) === true;
                     } else {
