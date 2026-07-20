@@ -4,6 +4,10 @@ import type { Server as HttpProxyServer } from "../plugins/types";
 import { MockProxy, readRequestOptions } from "../mocker";
 import { wait } from "../utils";
 import { MockServerFallback, MockServerHandle, MockServerOptions } from "./types";
+import {
+    normalizeBehaviors, resolveBehaviorPrefix, parseBehaviorHeader,
+    applyBehavior, createBehaviorState,
+} from "./behaviors";
 
 type NormalizedDocsOptions = {
     specPath: string;
@@ -53,6 +57,13 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
     }
 
     warnIfDocsShadowMocks(proxy, docs);
+
+    const behaviors = normalizeBehaviors(opts.behaviors, opts.behaviorHeader, opts.behaviorSessionHeader);
+    const behaviorState = createBehaviorState();
+
+    if (behaviors && behaviors.prefixes.length === 0) {
+        console.warn("MockService Warning: `behaviors` was provided but no prefixes resolved. Behaviors will be ignored.");
+    }
 
     let openapiModPromise: Promise<typeof import("../openapi/index.js")> | undefined;
     function getOpenapiMod(): Promise<typeof import("../openapi/index.js")> {
@@ -108,6 +119,23 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
 
         const resolved = proxy.resolve(parsed);
         if (resolved) {
+            if (behaviors) {
+                const cfg = resolveBehaviorPrefix(parsed.urlPath, behaviors.prefixes);
+                if (cfg) {
+                    const directive = parseBehaviorHeader(parsed.headers?.[behaviors.header], cfg);
+                    if (directive) {
+                        await applyBehavior(directive, resolved, req, res, cfg, behaviorState, {
+                            urlPath: parsed.urlPath,
+                            method: parsed.method,
+                            sessionHeader: behaviors.sessionHeader,
+                            sessionValue: behaviors.sessionHeader
+                                ? parsed.headers?.[behaviors.sessionHeader]
+                                : undefined,
+                        });
+                        return;   // behavior owned the response
+                    }
+                }
+            }
             if (resolved.delayMs > 0) {
                 await wait(resolved.delayMs);
             }
@@ -152,7 +180,7 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
             return typeof addr === "object" && addr ? addr.port : port;
         },
         resetBehaviorState() {
-            // Wired up in WS5; no-op placeholder for WS0 type-check.
+            behaviorState.retryCounts.clear();
         },
     };
 

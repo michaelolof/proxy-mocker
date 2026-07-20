@@ -168,7 +168,11 @@ router.url("/slow", {
 });
 ```
 
-### 5.6 Everything else (matching, dynamic responses, headers, codecs)
+### 5.6 Simulating failures (behaviors)
+For client-triggered fault injection — delay, timeout, reset, flaky, retry — see the dedicated
+guide: [`docs/mock-behaviors-guide.md`](mock-behaviors-guide.md).
+
+### 5.7 Everything else (matching, dynamic responses, headers, codecs)
 Mock authoring is identical to the Vite/http-proxy plugin and the Go sidecar — see
 `docs/golang-plugin-guide.md` §4-5 for the full set of recipes (typed request matchers, function-based
 `success`/`error`/`header`, `.only()` focus mode, non-JSON codecs). None of that changes based on

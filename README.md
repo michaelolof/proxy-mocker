@@ -397,6 +397,31 @@ The generated schemas are inferred from mocked examples, so treat them as a help
 what has been mocked rather than an authoritative API contract. See
 [`docs/openapi-guide.md`](docs/openapi-guide.md) for options, Swagger UI mode, and caveats.
 
+#### Simulating failures & latency
+
+The standalone server supports **behaviors** — client-triggered fault injection for testing how your
+app handles slow, flaky, or broken APIs. Send an `X-Mock-Behavior` header to opt a request into
+delay, timeout, reset, flaky, or retry:
+
+```ts
+const server = createMockServer(proxy, {
+  port: 4000,
+  fallback: "notFound",
+  behaviors: {
+    "/payments": { retry: { count: 2 } },
+    "/users": { flaky: { rate: 0.1 } },
+  },
+});
+```
+
+```bash
+curl -H "X-Mock-Behavior: retry" http://localhost:4000/payments   # 503, 503, then 200
+curl -H "X-Mock-Behavior: flaky" http://localhost:4000/users      # ~10% → 503
+```
+
+Behaviors are off by default, per-prefix, and dev-only. See
+[`docs/mock-behaviors-guide.md`](docs/mock-behaviors-guide.md) for the full reference.
+
 ### 2. Plug into an existing Vite / `http-proxy` dev server
 
 If your project already proxies API requests through Vite (or any tool built on the `http-proxy`
@@ -507,6 +532,8 @@ hardening, and the Go sidecar in particular is explicitly local-only.
 
 - [`docs/mock-server-guide.md`](docs/mock-server-guide.md) — the standalone server in depth: all
   three fallback modes, configuration reference, and testing recipes.
+- [`docs/mock-behaviors-guide.md`](docs/mock-behaviors-guide.md) — simulating slow, flaky, or
+  broken API responses with client-triggered fault injection.
 - [`docs/openapi-guide.md`](docs/openapi-guide.md) — generating OpenAPI 3.1 from registered mocks
   and serving browsable docs from the standalone server.
 - [`docs/golang-plugin-guide.md`](docs/golang-plugin-guide.md) — using `proxy-mocker` from a Go
