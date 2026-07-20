@@ -1,7 +1,18 @@
 # Using `proxy-mocker` with a Go proxy — User Guide
 
-> This guide shows how a team running a **Go reverse proxy** reuses `proxy-mocker`'s typed mock
-> definitions during local development. See `plans/golang-plugin.md` for the design/rationale.
+> **Status: Node side implemented; Go side not yet.** `MockRouter`/`MockProxy` and
+> **`startMockSidecar`** (§3.1 below) are real, shipped, and tested — the sidecar answers
+> `POST /__match` and `GET /__health` over a Unix socket (or loopback TCP) exactly as described here.
+> The **`proxymocker` Go package** (§3.2, §6) — the client, `Middleware`, everything on the Go side —
+> is **not built yet**; only Phases 0-2 of `plans/golang-plugin.md` have landed. Until the Go package
+> exists, you can still drive the sidecar from Go (or any language) with a plain HTTP client against
+> the wire contract in `plans/golang-plugin.md` §4 — or see `docs/mock-server-guide.md` for
+> `createMockServer`, which is fully implemented today and can serve as a language-agnostic upstream
+> with no client library at all.
+>
+> This guide shows how a team running a **Go reverse proxy** would reuse `proxy-mocker`'s typed mock
+> definitions during local development once the Go package is built. See `plans/golang-plugin.md` for
+> the design/rationale.
 >
 > **Mental model:** you author mocks in TypeScript (fully typed from your OpenAPI schema), run them
 > as a tiny **Node sidecar**, and your Go proxy asks the sidecar — per request — "should I mock
@@ -45,9 +56,10 @@ Three pieces you touch:
 2. **Your Go proxy** — add one line: wrap your handler with `proxymocker.Middleware(client, next)`.
 3. **A socket path** both sides agree on (e.g. `/tmp/proxy-mocker.sock`).
 
-> **Prefer no Go client?** A `passthrough` **dedicated mock server** (see `plans/mock-server.md`)
-> is a language-agnostic alternative: run the mock server, point your Go proxy at it as an upstream,
-> and it serves mocks or forwards to the real API itself — no `proxymocker` Go package required. You
+> **Want something that works today?** A `passthrough` **dedicated mock server**
+> (`docs/mock-server-guide.md` — implemented and tested now, unlike the sidecar above) is a
+> language-agnostic alternative: run the mock server, point your Go proxy at it as an upstream, and
+> it serves mocks or forwards to the real API itself — no `proxymocker` Go package required. You
 > still run a Node process alongside your Go proxy (that's unavoidable — mocks are live JS), but you
 > skip the per-request RPC client. Trade-off: the mock server owns the upstream dial instead of your
 > Go proxy. Use the RPC client (this guide) when the Go proxy must keep its own routing/upstream
