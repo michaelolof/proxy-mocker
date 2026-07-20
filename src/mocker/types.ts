@@ -90,3 +90,11 @@ export type RequestOptions = {
     cookies?: Record<string, string>;
     body?: Uint8Array[];
 };
+
+export type ResolvedMockResponse = {
+    pattern: string;
+    statusCode: number;
+    headers: Record<string, string>;
+    body: string;
+    delayMs: number;
+};

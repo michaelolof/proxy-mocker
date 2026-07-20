@@ -1,10 +1,10 @@
 
-export function extractFuncy<T>(valOrFn?: (() => T) | T): T | undefined {
+export function extractFuncy<T, A = undefined>(valOrFn?: ((arg?: A) => T) | T, arg?: A): T | undefined {
     if (valOrFn === undefined) {
         return undefined;
     } else if (typeof valOrFn === "function") {
-        //@ts-expect-error "You don't know what you're saying" 
-        return valOrFn();
+        //@ts-expect-error "You don't know what you're saying"
+        return valOrFn(arg);
     } else {
         return valOrFn;
     }

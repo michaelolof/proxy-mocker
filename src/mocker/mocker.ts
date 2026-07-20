@@ -4,8 +4,11 @@ import {
     MockRoutes,
     MockProxyOptions,
     RequestOptions,
-    MethodDefinition
+    MethodDefinition,
+    ResolvedMockResponse,
+    RequestPayload
 } from "./types";
+import { extractFuncy } from "../utils";
 
 type RouterOptions = {
     rewritePath?: (path: string) => string;
@@ -73,13 +76,14 @@ export class MockProxy {
         return this.#routes;
     }
 
-    encodeResponse(resp: MethodDefinition<any>["response"]): string {
+    encodeResponse(resp: MethodDefinition<any>["response"], req?: RequestPayload<any>): string {
         if (!resp) {
             return ""
         }
 
         const responseEncoder = resp.encoder || this.#opts.codec?.responseEncoder;
-        return responseEncoder ? responseEncoder(resp.success || resp.error) : JSON.stringify(resp.success || resp.error)
+        const payload = extractFuncy(resp.success, req) ?? extractFuncy(resp.error, req);
+        return responseEncoder ? responseEncoder(payload) : JSON.stringify(payload)
     }
 
     matchIncomingRequest(req: RequestOptions): MatchedRequest<any> | undefined {
@@ -155,6 +159,7 @@ export class MockProxy {
                         url: rurl,
                         method: rmethod,
                         mock: mock,
+                        payload: { query: rquery, path: rpath, header: rheaders, body: rbody },
                     };
                 }
 
@@ -165,11 +170,31 @@ export class MockProxy {
         return undefined;
     }
 
+    resolve(req: RequestOptions): ResolvedMockResponse | undefined {
+        const match = this.matchIncomingRequest(req);
+        if (!match) {
+            return undefined;
+        }
+
+        const resp = match.mock.response;
+        return {
+            pattern: match.pattern,
+            statusCode: extractFuncy(resp?.statusCode) ?? 200,
+            headers: {
+                "content-type": "application/json; charset=utf-8",
+                ...extractFuncy(resp?.header, match.payload),
+            },
+            body: this.encodeResponse(resp, match.payload),
+            delayMs: extractFuncy(resp?.delay) ?? 0,
+        };
+    }
+
 }
 
 type MatchedRequest<O> = {
     pattern: string;
     url: string;
     method: string;
-    mock: MethodDefinition<O>
+    mock: MethodDefinition<O>;
+    payload: RequestPayload<O>;
 }
