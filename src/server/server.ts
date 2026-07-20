@@ -5,10 +5,26 @@ import { MockProxy, readRequestOptions } from "../mocker";
 import { wait } from "../utils";
 import { MockServerFallback, MockServerHandle, MockServerOptions } from "./types";
 
+type NormalizedDocsOptions = {
+    specPath: string;
+    uiPath: string;
+    uiProvider?: "stoplight" | "swagger";
+    title?: string;
+    info?: {
+        title?: string;
+        version?: string;
+        description?: string;
+    };
+    invokeResponders?: boolean;
+    stoplightElementsVersion?: string;
+    swaggerUIVersion?: string;
+};
+
 export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {}): MockServerHandle {
     const fallback: MockServerFallback = opts.fallback ?? "passthrough";
     const host = opts.host ?? "127.0.0.1";
     const port = opts.port ?? 0;
+    const docs = normalizeDocs(opts.docs);
 
     if (fallback === "passthrough" && !opts.target) {
         throw new Error(
@@ -36,6 +52,18 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
         return httpProxyPromise;
     }
 
+    warnIfDocsShadowMocks(proxy, docs);
+
+    let openapiModPromise: Promise<typeof import("../openapi/index.js")> | undefined;
+    function getOpenapiMod(): Promise<typeof import("../openapi/index.js")> {
+        if (!openapiModPromise) {
+            openapiModPromise = import("../openapi/index.js");
+        }
+        return openapiModPromise;
+    }
+
+    let docCache: string | undefined;
+
     const httpServer = http.createServer(async (req, res) => {
         const parsed = await readRequestOptions(req).catch((err) => {
             console.error("MockService Error: failed reading incoming request:", err);
@@ -48,6 +76,34 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
 
         if (!parsed) {
             return;
+        }
+
+        if (docs && parsed.method.toUpperCase() === "GET") {
+            if (parsed.urlPath === docs.specPath) {
+                const openapi = await getOpenapiMod();
+                docCache ??= JSON.stringify(
+                    openapi.generateOpenAPI(proxy, {
+                        info: docs.info,
+                        invokeResponders: docs.invokeResponders,
+                    })
+                );
+                res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+                res.end(docCache);
+                return;
+            }
+
+            if (parsed.urlPath === docs.uiPath) {
+                const openapi = await getOpenapiMod();
+                const html = openapi.docsUIHtml(docs.specPath, {
+                    provider: docs.uiProvider,
+                    title: docs.title,
+                    stoplightVersion: docs.stoplightElementsVersion,
+                    swaggerVersion: docs.swaggerUIVersion,
+                });
+                res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+                res.end(html);
+                return;
+            }
         }
 
         const resolved = proxy.resolve(parsed);
@@ -98,4 +154,46 @@ export function createMockServer(proxy: MockProxy, opts: MockServerOptions = {})
     };
 
     return handle;
+}
+
+function normalizeDocs(docs: MockServerOptions["docs"]): NormalizedDocsOptions | undefined {
+    if (!docs) return undefined;
+
+    const options = docs === true ? {} : typeof docs === "string" ? { uiPath: docs } : docs;
+    const uiPath = normalizePath(options.uiPath ?? "docs");
+    return {
+        specPath: options.specPath ? normalizePath(options.specPath) : joinPath(uiPath, "q/openapi.json"),
+        uiPath,
+        uiProvider: options.uiProvider,
+        title: options.title,
+        info: options.info,
+        invokeResponders: options.invokeResponders,
+        stoplightElementsVersion: options.stoplightElementsVersion,
+        swaggerUIVersion: options.swaggerUIVersion,
+    };
+}
+
+function normalizePath(path: string): string {
+    const normalized = path.trim();
+    if (!normalized) return "/";
+    const withLeadingSlash = normalized.startsWith("/") ? normalized : `/${normalized}`;
+    return withLeadingSlash === "/" ? withLeadingSlash : withLeadingSlash.replace(/\/+$/, "");
+}
+
+function joinPath(base: string, suffix: string): string {
+    return `${base.replace(/\/+$/, "")}/${suffix.replace(/^\/+/, "")}`;
+}
+
+function warnIfDocsShadowMocks(proxy: MockProxy, docs: NormalizedDocsOptions | undefined): void {
+    if (!docs) return;
+
+    const routes = proxy.routes() as Record<string, unknown>;
+    const shadowedPaths = [docs.specPath, docs.uiPath].filter((path) => routes[path]);
+    if (shadowedPaths.length === 0) return;
+
+    console.warn(
+        "MockService Warning: docs routes are served before mocks and will shadow registered mock(s): " +
+        shadowedPaths.join(", ") +
+        ". Configure docs.specPath or docs.uiPath to avoid the clash."
+    );
 }

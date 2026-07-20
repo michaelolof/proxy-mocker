@@ -380,6 +380,23 @@ Three fallback modes are available for anything that doesn't match a mock:
 
 **Full guide, more examples, and a test-suite recipe:** [`docs/mock-server-guide.md`](docs/mock-server-guide.md).
 
+#### Visualizing your mocks
+
+Add `docs: true` to a standalone mock server to serve a Stoplight docs page at `/docs` and its
+generated OpenAPI document at `/docs/q/openapi.json`:
+
+```ts
+const server = createMockServer(proxy, {
+  port: 4000,
+  fallback: "notFound",
+  docs: true,
+});
+```
+
+The generated schemas are inferred from mocked examples, so treat them as a helpful visualization of
+what has been mocked rather than an authoritative API contract. See
+[`docs/openapi-guide.md`](docs/openapi-guide.md) for options, Swagger UI mode, and caveats.
+
 ### 2. Plug into an existing Vite / `http-proxy` dev server
 
 If your project already proxies API requests through Vite (or any tool built on the `http-proxy`
@@ -490,6 +507,8 @@ hardening, and the Go sidecar in particular is explicitly local-only.
 
 - [`docs/mock-server-guide.md`](docs/mock-server-guide.md) — the standalone server in depth: all
   three fallback modes, configuration reference, and testing recipes.
+- [`docs/openapi-guide.md`](docs/openapi-guide.md) — generating OpenAPI 3.1 from registered mocks
+  and serving browsable docs from the standalone server.
 - [`docs/golang-plugin-guide.md`](docs/golang-plugin-guide.md) — using `proxy-mocker` from a Go
   proxy: the sidecar, the Go client API, and the wire protocol.
 - [`CHANGELOG.md`](CHANGELOG.md) — release history.

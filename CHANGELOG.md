@@ -3,6 +3,20 @@
 All notable changes to this project are documented in this file.
 The format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 0.2.0
+
+### Added
+- `proxy-mocker/openapi` subpath export with `generateOpenAPI`, schema inference helpers, and docs
+  UI HTML helpers. The core `proxy-mocker` entry point does not re-export OpenAPI helpers.
+- OpenAPI 3.1 generation from registered mocks, including path normalization, inferred request and
+  response schemas, static examples, function-response harvesting, status grouping, and merged
+  multi-example responses.
+- `createMockServer(proxy, { docs })` integration. `docs: true` serves a Stoplight Elements docs UI
+  at `/docs` and the generated OpenAPI JSON at `/docs/q/openapi.json`; passing a string such as
+  `docs: "reference"` uses it as the UI path and infers `/reference/q/openapi.json`.
+- Optional Swagger UI mode for served docs via `docs: { uiProvider: "swagger" }`.
+- OpenAPI documentation in `docs/openapi-guide.md`, plus README and mock-server guide links.
+
 ## 0.1.0
 
 ### Added

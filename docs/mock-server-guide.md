@@ -137,14 +137,29 @@ createMockServer(proxy, {
 });
 ```
 
-### 5.3 Mixing with `baseURL`
+### 5.3 Serve generated OpenAPI docs
+```ts
+createMockServer(proxy, {
+  port: 4000,
+  fallback: "notFound",
+  docs: true,
+});
+```
+
+This adds `GET /docs` for a Stoplight Elements docs page and `GET /docs/q/openapi.json` for the
+generated OpenAPI 3.1 document. The document is inferred from mocked examples, so it is best-effort
+visualization rather than an authoritative contract. Pass `docs: "reference"` to serve the UI at
+`/reference` and infer the spec path as `/reference/q/openapi.json`. For config options, Swagger UI
+mode, and caveats, see [`docs/openapi-guide.md`](openapi-guide.md).
+
+### 5.4 Mixing with `baseURL`
 Same as any other adapter — prefix once on the `MockProxy`, author routes bare:
 ```ts
 const proxy = new MockProxy({ baseURL: "/api" });
 proxy.register(router); // "/users" → "/api/users"
 ```
 
-### 5.4 Simulating latency
+### 5.5 Simulating latency
 Delays are applied with a non-blocking `await wait(ms)` — no busy-waiting, so other in-flight
 requests are unaffected:
 ```ts
@@ -153,7 +168,7 @@ router.url("/slow", {
 });
 ```
 
-### 5.5 Everything else (matching, dynamic responses, headers, codecs)
+### 5.6 Everything else (matching, dynamic responses, headers, codecs)
 Mock authoring is identical to the Vite/http-proxy plugin and the Go sidecar — see
 `docs/golang-plugin-guide.md` §4-5 for the full set of recipes (typed request matchers, function-based
 `success`/`error`/`header`, `.only()` focus mode, non-JSON codecs). None of that changes based on
@@ -209,6 +224,7 @@ This is the same pattern used in this repo's own `test/server.test.mjs`.
 | `fallback` | `"notFound" \| "passthrough" \| (req, res, parsed) => void` | `"passthrough"` | See §4. |
 | `target` | `string` | — | Required when `fallback` is (or defaults to) `"passthrough"`. Validated eagerly. |
 | `notFoundBody` | `unknown` | `{ error: "no mock matched this request" }` | Only used with `fallback: "notFound"`. |
+| `docs` | `boolean \| string \| DocsOptions` | `false` | Serves a docs UI and inferred OpenAPI JSON path when enabled. See [`docs/openapi-guide.md`](openapi-guide.md). |
 
 ### `MockServerHandle`
 | Member | Notes |
@@ -265,4 +281,5 @@ when the host proxy needs to keep that control; use this when it doesn't.
 | Passthrough forwards an empty body | Shouldn't happen — the server re-buffers the body specifically to avoid this. If you see it, check you're not also consuming `req` yourself in a custom fallback before calling `res.end`. |
 | A route isn't mocked | Same as any adapter: check path pattern, method, and that all `request` constraints (query/path/header/body) actually match — they're now combined with AND, not first-wins. |
 | `EADDRINUSE` on `listen()` | Another process holds that port — use `port: 0` for tests, or free the port. |
+| `/docs` is blank but `/docs/q/openapi.json` works | The docs UI loads CDN assets. Check network access, or consume the JSON endpoint directly. |
 | Response body is empty for a `success`/`error` function | Fixed as of the `resolve()`/`encodeResponse` correctness fix — function-based `success`/`error`/`header` now receive the actual request (`query`/`path`/`header`/`body`) and are invoked correctly. Make sure you're on a build that includes it. |

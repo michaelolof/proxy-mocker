@@ -1,6 +1,7 @@
 import * as http from "http";
 import type { AddressInfo } from "net";
 import { RequestOptions } from "../mocker";
+import type { DocsOptions } from "../openapi/types";
 
 export type MockServerFallback =
     | "notFound"
@@ -13,6 +14,7 @@ export type MockServerOptions = {
     fallback?: MockServerFallback;
     target?: string;
     notFoundBody?: unknown;
+    docs?: boolean | string | DocsOptions;
 };
 
 export type MockServerHandle = {
