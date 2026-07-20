@@ -14,7 +14,7 @@ type RouterOptions = {
     rewritePath?: (path: string) => string;
 }
 
-export class MockRouter<T> {
+export class MockRouter<T = any> {
     #onlyRoutes: MockRoutes<T> = {};
     #routes: MockRoutes<T> = {};
     #opts: RouterOptions = {};

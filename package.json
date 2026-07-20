@@ -1,6 +1,6 @@
 {
   "name": "proxy-mocker",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "A proxy mocking library with openapi3 type inference",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/michaelolof/proxy-mocker#readme",
   "devDependencies": {
+    "@types/http-proxy": "^1.17.17",
     "@types/node": "^24.10.2",
     "typescript": "^5.9.3"
   },
